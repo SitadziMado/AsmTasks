@@ -21,6 +21,12 @@
     <ClInclude Include="targetver.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="AsmFuncs.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="IOWrappers.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -29,5 +35,43 @@
     <ClCompile Include="AsmTasks.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="SaddleElement.asm">
+      <Filter>Исходные файлы</Filter>
+    </MASM>
+    <MASM Include="Atoi.asm">
+      <Filter>Исходные файлы</Filter>
+    </MASM>
+    <MASM Include="Itoa.asm">
+      <Filter>Исходные файлы</Filter>
+    </MASM>
+    <MASM Include="Memset.asm">
+      <Filter>Исходные файлы</Filter>
+    </MASM>
+    <MASM Include="MulBy2n.asm">
+      <Filter>Исходные файлы</Filter>
+    </MASM>
+    <MASM Include="DivBy2n.asm">
+      <Filter>Исходные файлы</Filter>
+    </MASM>
+    <MASM Include="Crypt.asm">
+      <Filter>Исходные файлы</Filter>
+    </MASM>
+    <MASM Include="ScaleCopy.asm">
+      <Filter>Исходные файлы</Filter>
+    </MASM>
+    <MASM Include="StrStr.asm">
+      <Filter>Исходные файлы</Filter>
+    </MASM>
+    <MASM Include="WStrCmp.asm">
+      <Filter>Исходные файлы</Filter>
+    </MASM>
+    <MASM Include="BcdAdd.asm">
+      <Filter>Исходные файлы</Filter>
+    </MASM>
+    <MASM Include="BcdSub.asm">
+      <Filter>Исходные файлы</Filter>
+    </MASM>
   </ItemGroup>
 </Project>
