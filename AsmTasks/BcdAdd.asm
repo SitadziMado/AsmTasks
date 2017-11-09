@@ -48,7 +48,7 @@ bcd_add proc \
                 jecxz exit
 
                 mov eax, $dst
-                lea edi, [eax + edi + 2]
+                lea edi, [eax + edi + 1]
                 mov byte ptr [eax], '0'
 
                 xor eax, eax
