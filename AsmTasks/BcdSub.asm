@@ -19,7 +19,7 @@ bcd_sub proc \
                 cmp byte ptr [edi], 0
                 jz null_2
 
-                ; Skip trailing zeores
+                ; Skip trailing zeroes
                 mov eax, '0'
 
                 mov ecx, -1

@@ -5,6 +5,8 @@ static_assert(
     "Программа может компилироваться только на 32-битные системы."
 );
 
+using std::size_t;
+
 namespace asm_funcs
 {
     extern "C"
@@ -57,6 +59,11 @@ namespace asm_funcs
             const char* second
         );
 
+		// 1234
+		//  345
+		// 0 9 8 9
+		// 1 1 1 1
+
         // #7
 
         extern const void* memset(
@@ -82,8 +89,6 @@ namespace asm_funcs
             const wchar_t* rhs,
             size_t* index
         );
-
-
 
         // #8
 
