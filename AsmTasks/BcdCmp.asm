@@ -13,55 +13,99 @@ bcd_cmp proc \
                 mov esi, $first
                 mov edi, $second
                 
-                xchg esi, edi
-
-                xor eax, eax
-                mov ecx, -1
-                mov edx, -1
+                cld
                 
-                repnz scasb
+    cmp_loop:   cmpsb
+                jnz failure
                 
-                neg ecx
-                ; dec ecx
+                cmp byte ptr [esi - 1], 0
+                jz end
                 
-                xchg ecx, edx
-                xchg esi, edi
-
-                repnz scasb
+                cmp byte ptr [edi - 1], 0
+                jz failure
                 
-                neg ecx
-                ; dec ecx
+                jmp cmp_loop
                 
-                cmp ecx, edx
-                jb above
-                ja below
+    first_end:  cmp byte ptr [edi - 1], 0
+                jnz failure
                 
-                std
+                mov eax, 0
+                jmp exit
                 
-                repz cmpsb
-                jnz diff
-                jecxz equals
-                
-    diff:       inc esi
-                inc edi
-                
+    failure:    xor eax, eax
+                dec esi
+                dec edi
                 lodsb
                 sub al, [edi]
-                jb below
-                ja above
                 
-    equals:     xor eax, eax
+                cmp eax, 0
+                jb less
+                
+                mov eax, 1
                 jmp exit
                 
-    above:      mov eax, 1
-                jmp exit
-                
-    below:      mov eax, -1
-                
-                xchg esi, edi
-                
+    less:       mov eax, -1
+    
     exit:       ret
                 
 bcd_cmp endp
+
+; bcd_cmp proc \
+;     $first : PTR BYTE, \
+;     $second : PTR BYTE
+;     
+;                 mov esi, $first
+;                 mov edi, $second
+;                 
+;                 xchg esi, edi
+; 
+;                 xor eax, eax
+;                 mov ecx, -1
+;                 mov edx, -1
+;                 
+;                 repnz scasb
+;                 
+;                 neg ecx
+;                 ; dec ecx
+;                 
+;                 xchg ecx, edx
+;                 xchg esi, edi
+; 
+;                 repnz scasb
+;                 
+;                 neg ecx
+;                 ; dec ecx
+;                 
+;                 cmp ecx, edx
+;                 jb above
+;                 ja below
+;                 
+;                 std
+;                 
+;                 repz cmpsb
+;                 jnz diff
+;                 jecxz equals
+;                 
+;     diff:       inc esi
+;                 inc edi
+;                 
+;                 lodsb
+;                 sub al, [edi]
+;                 jb below
+;                 ja above
+;                 
+;     equals:     xor eax, eax
+;                 jmp exit
+;                 
+;     above:      mov eax, 1
+;                 jmp exit
+;                 
+;     below:      mov eax, -1
+;                 
+;                 xchg esi, edi
+;                 
+;     exit:       ret
+;                 
+; bcd_cmp endp
 
 end
