@@ -9,6 +9,29 @@ using std::size_t;
 
 namespace asm_funcs
 {
+    class ShortSet
+    {
+    public:
+        static constexpr size_t Size = 65536U;
+
+        ShortSet();
+
+        ShortSet& operator+=(const ShortSet& rhs);
+        ShortSet& operator-=(const ShortSet& rhs);
+        ShortSet& operator*=(const ShortSet& rhs);
+
+        bool find(short item) const;
+        void insert(short item);
+        void remove(short item);
+
+    private:
+        std::vector<size_t> data_;
+    };
+
+    const ShortSet& operator+(const ShortSet& lhs, const ShortSet& rhs);
+    const ShortSet& operator-(const ShortSet& lhs, const ShortSet& rhs);
+    const ShortSet& operator*(const ShortSet& lhs, const ShortSet& rhs);
+
     extern "C"
     {
         // #1

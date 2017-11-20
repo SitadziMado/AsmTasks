@@ -152,6 +152,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AsmFuncs.cpp" />
     <ClCompile Include="AsmTasks.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -161,8 +162,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <MASM Include="Atof.asm" />
     <MASM Include="Atoi.asm" />
     <MASM Include="BcdAdd.asm" />
+    <MASM Include="BcdCmp.asm" />
     <MASM Include="BcdSub.asm" />
     <MASM Include="Crypt.asm" />
     <MASM Include="DivBy2n.asm" />
@@ -171,6 +174,7 @@
     <MASM Include="MulBy2n.asm" />
     <MASM Include="SaddleElement.asm" />
     <MASM Include="ScaleCopy.asm" />
+    <MASM Include="Union.asm" />
     <MASM Include="StrStr.asm" />
     <MASM Include="WStrCmp.asm" />
   </ItemGroup>

@@ -2,7 +2,7 @@
 .stack
 .data
 
-; Генератор таблицы
+; Генератор таблицы (Python):
 ; table = [str(x - 13) + ', ' if (x + 1) % 8 != 0 else str(x - 13) + ",\\\n" for x in range(0, 128 + 13)]
 ; print(''.join(table))
 ; Шифр Цезаря со сдвигом на 13
@@ -23,6 +23,7 @@ table db	0, 14, 15, 16, 17, 18, 19, 20
 	  db	125, 126, 127, 128, 129, 130, 131, 132
 	  db	133, 134, 135, 136, 137, 138, 139, 140
 
+; Обратная таблица
 itable db	-13, -12, -11, -10, -9, -8, -7, -6
 	   db	-5, -4, -3, -2, -1, 0, 1, 2
 	   db	3, 4, 5, 6, 7, 8, 9, 10
@@ -50,12 +51,18 @@ public decrypt
 encrypt proc \
 	$string : PTR BYTE
 
+                ; Копируем в регистры указатель на строку,
+                ; указатель на начало таблицы
 				xor eax, eax
 				mov ebx, offset table
 				mov esi, $string
 				mov edi, $string
 				cld
 
+                ; Загружаем следующий символ, если он ненулевой:
+                ;   транслируем командой XLAT: AL <- [EBX + AL]
+                ;   иначе выходим
+                ; Сохраняем закодированный символ в строке
 	crypt_loop:	lodsb
 				test eax, eax
 				jz end_crypt
@@ -70,14 +77,20 @@ encrypt endp
 
 decrypt proc \
 	$string : PTR BYTE
-
+    
+                ; Копируем в регистры указатель на строку,
+                ; указатель на начало таблицы
 				xor eax, eax
 				mov ebx, offset itable
 				mov esi, $string
 				mov edi, $string
 				cld
 
-	decrp_loop: lodsb
+	            ; Загружаем следующий символ, если он ненулевой:
+                ;   транслируем командой XLAT: AL <- [EBX + AL]
+                ;   иначе выходим
+                ; Сохраняем раскодированный символ в строке
+    decrp_loop: lodsb
 				test eax, eax
 				jz end_decrp
 				xlat

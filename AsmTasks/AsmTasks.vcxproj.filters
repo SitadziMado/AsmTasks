@@ -35,6 +35,9 @@
     <ClCompile Include="AsmTasks.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="AsmFuncs.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="SaddleElement.asm">
@@ -71,6 +74,15 @@
       <Filter>Исходные файлы</Filter>
     </MASM>
     <MASM Include="BcdSub.asm">
+      <Filter>Исходные файлы</Filter>
+    </MASM>
+    <MASM Include="BcdCmp.asm">
+      <Filter>Исходные файлы</Filter>
+    </MASM>
+    <MASM Include="Union.asm">
+      <Filter>Исходные файлы</Filter>
+    </MASM>
+    <MASM Include="Atof.asm">
       <Filter>Исходные файлы</Filter>
     </MASM>
   </ItemGroup>

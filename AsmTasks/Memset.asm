@@ -3,13 +3,6 @@
 .stack
 .data
 
-MAX EQU 07FFFFFFFh
-MIN EQU 080000000h
-BASE EQU 0Ah
-SEP0 EQU '`'
-SEP1 EQU "'"
-SEP2 EQU "_"
-
 .code
 
 public memset
@@ -19,12 +12,15 @@ memset proc \
     value : DWORD, \
     len : DWORD
 
+                ; Проверяем, не нулевая ли длина?
 				mov ecx, len
 				jecxz exit
 
+                ; Устанавливаем регистры значениями
 				mov eax, value
 				mov edi, dst
 
+                ; Записываем побайтово в память
 				rep stosb
 
 	exit:		ret
