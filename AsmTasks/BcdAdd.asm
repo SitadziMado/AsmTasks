@@ -30,7 +30,7 @@ bcd_add proc \
     sum_loop:   lodsb
                 
                 test eax, eax
-                jz finale
+                jz first_end
                 cmp eax, '0'
                 jb err
                 cmp eax, '9'
@@ -38,16 +38,16 @@ bcd_add proc \
                 
                 mov cl, [ebx]
                 test ecx, ecx
-                jz finale
+                jz second_end
                 cmp ecx, '0'
                 jb err
                 cmp ecx, '9'
                 ja err
 
-                add al, cl
+                shr edx, 1
+                adc al, cl
                 aaa
-                test edx, edx
-                adc al, '0'
+                add al, '0'
                 
                 stosb
                 shr eax, 8
@@ -56,9 +56,34 @@ bcd_add proc \
                 inc ebx
                 jmp sum_loop
                 
-    finale:     mov eax, edx
+    first_end:  mov esi, ebx
+                jmp @F
+    
+    second_end: dec esi
+    
+    @@:         lodsb
+                
                 test eax, eax
-                jnz skip_carry
+                jz @F
+                cmp eax, '0'
+                jb err
+                cmp eax, '9'
+                ja err
+
+                ; shr edx, 1
+                add al, dl
+                aaa
+                add al, '0'
+                
+                stosb
+                shr eax, 8
+                mov edx, eax
+                
+                jmp @B
+                
+    @@:         mov eax, edx
+                test eax, eax
+                jz skip_carry
                 
                 add eax, '0'
                 stosb
@@ -70,6 +95,7 @@ bcd_add proc \
                 
                 jmp exit
                 
+	err:
     null:       xor eax, eax
     
     exit:       ret

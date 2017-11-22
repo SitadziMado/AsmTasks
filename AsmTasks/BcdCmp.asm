@@ -19,7 +19,7 @@ bcd_cmp proc \
                 jnz failure
                 
                 cmp byte ptr [esi - 1], 0
-                jz end
+                jz exit
                 
                 cmp byte ptr [edi - 1], 0
                 jz failure
@@ -39,7 +39,7 @@ bcd_cmp proc \
                 sub al, [edi]
                 
                 cmp eax, 0
-                jb less
+                jl less
                 
                 mov eax, 1
                 jmp exit

@@ -19,6 +19,10 @@ LEN EQU 512
         $dst_set : PTR DWORD, \
         $src_set : PTR DWORD
         
+                    push ecx
+                    push esi
+                    push edi
+        
                     ; Извлекаем указатели на множества из стека
                     mov esi, $src_set
                     mov edi, $dst_set
@@ -39,6 +43,10 @@ LEN EQU 512
 
                     loop @B
 
+                    pop edi
+                    pop esi
+                    pop ecx
+                    
                     ret
 
     _&_op_name endp
@@ -80,6 +88,8 @@ _find proc \
     $set : PTR DWORD, \
     $item : WORD \
 
+                push edi
+    
                 ; Используем вышеописанный макрос
                 @comp_dword_bit
 
@@ -95,6 +105,8 @@ _find proc \
                 ; в зависимости от значения бита
                 setc al
 
+                pop edi
+                
                 ret
 
 _find endp
@@ -102,6 +114,8 @@ _find endp
 _insert proc \
     $set : PTR DWORD, \
     $item : WORD \
+                
+                push edi
                 
                 ; Используем вышеописанный макрос
                 @comp_dword_bit
@@ -118,6 +132,8 @@ _insert proc \
                 ; в память
                 mov [edi], eax
 
+                pop edi
+                
                 ret
 
 _insert endp
@@ -125,6 +141,8 @@ _insert endp
 _remove proc \
     $set : PTR DWORD, \
     $item : WORD \
+    
+                push edi
     
                 ; Используем вышеописанный макрос
                 @comp_dword_bit
@@ -141,6 +159,8 @@ _remove proc \
                 ; в память
                 mov [edi], eax
 
+                pop edi
+                
                 ret
 
 _remove endp

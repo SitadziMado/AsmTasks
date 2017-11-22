@@ -4,8 +4,8 @@
 .data
 .code
 
+extern bcd_cmp : near
 public bcd_sub
-
 
 bcd_sub proc \
     $dst : PTR BYTE, \
@@ -14,7 +14,90 @@ bcd_sub proc \
 
                 mov esi, $lhs
                 mov ebx, $rhs
+                ; mov edi, $dst
+    
+                test esi, esi
+                jz null
+                test ebx, ebx
+                jz null
+                test edi, edi
+                jz null
+    
+                push ebx
+                push esi
+                call bcd_cmp
+                add esp, 8
+                
+                mov esi, $lhs
+                mov ebx, $rhs
                 mov edi, $dst
+
+				cld
+                xor edx, edx
+                
+                cmp eax, 0
+                jg greater
+                jl less
+                
+                mov eax, '0'
+                stosb
+                xor eax, eax
+                stosb
+                lea eax, [edi - 2]
+                
+                jmp exit
+                
+                ; Первое число больше второго, все в порядке
+    greater:    xor eax, eax
+                xor ecx, ecx
+                jmp @F
+    
+    less:       xor eax, eax
+                xor ecx, ecx
+                mov edx, '-'
+                jmp @F
+                
+    @@:         lodsb
+                
+                test eax, eax
+                jz finale
+                cmp eax, '0'
+                jb err
+                cmp eax, '9'
+                ja err
+    
+                test ecx, ecx
+                mov cl, [ebx]
+                sbb al, cl
+                setc cl
+                das
+                
+                add eax, '0'
+                stosb
+                
+                inc ebx
+                
+                jmp @B
+                
+    finale:     test cl, cl
+                jz @F
+                mov eax, '9'
+                stosb
+                
+    @@:         test edx, edx
+                jz @F
+                
+                mov eax, edx
+                stosb
+                
+    @@:         xor eax, eax
+                stosb
+                jmp exit
+                
+    err:        
+    null:       xor eax, eax
+    
+    exit:       ret
     
 bcd_sub endp
 

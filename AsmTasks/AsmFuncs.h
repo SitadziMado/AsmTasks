@@ -82,11 +82,6 @@ namespace asm_funcs
             const char* second
         );
 
-		// 1234
-		//  345
-		// 0 9 8 9
-		// 1 1 1 1
-
         // #7
 
         extern const void* memset(
