@@ -11,182 +11,108 @@ bcd_add proc \
     $lhs : PTR BYTE, \
     $rhs : PTR BYTE
 
+                ; Загружаем первое число, проверяем на нуль
                 mov esi, $lhs
-                mov ebx, $rhs
-                mov edi, $dst
-                
                 test esi, esi
                 jz null
+                
+                ; Загружаем второе число, проверяем на нуль                
+                mov ebx, $rhs
                 test ebx, ebx
                 jz null
+                
+                ; Загружаем массив-приемник, проверяем на нуль
+                mov edi, $dst
                 test edi, edi
                 jz null
                 
+                ; Движемся в прямом направлении
+                cld
                 xor eax, eax
                 xor ecx, ecx
                 xor edx, edx
-                cld
                 
-    sum_loop:   lodsb
-                
+                ; Загружаем очередной символ
+    sum:        lodsb
+    
+                ; Если он ненулевой, то продолжаем
                 test eax, eax
                 jz first_end
-                cmp eax, '0'
-                jb err
-                cmp eax, '9'
-                ja err
                 
+                ; Загружаем символ из другого числа
                 mov cl, [ebx]
-                test ecx, ecx
-                jz second_end
-                cmp ecx, '0'
-                jb err
-                cmp ecx, '9'
-                ja err
-
-                shr edx, 1
-                adc al, cl
-                aaa
-                add al, '0'
-                
-                stosb
-                shr eax, 8
-                mov edx, eax
-                
                 inc ebx
-                jmp sum_loop
                 
-    first_end:  mov esi, ebx
-                jmp @F
-    
-    second_end: dec esi
-    
-    @@:         lodsb
+                ; Если символ второй строки ненулевой,
+                ; то продолжаем
+                jecxz second_end
                 
-                test eax, eax
-                jz @F
-                cmp eax, '0'
-                jb err
-                cmp eax, '9'
-                ja err
-
-                ; shr edx, 1
-                add al, dl
+                ; Добавляем к первому символу перенос
+                ; Складываем символы и вычитаем две базы "0"
+                ; Корректируем и возвращаем базу для вывода
+                add eax, edx
+                lea eax, [eax + ecx - '0' - '0']
                 aaa
-                add al, '0'
+                add eax, '0'
                 
+                ; Выводим символ
                 stosb
+                
+                ; Затираем символ, перенос теперь в AL
                 shr eax, 8
                 mov edx, eax
                 
-                jmp @B
+                ; Повторяем
+                jmp sum
                 
-    @@:         mov eax, edx
-                test eax, eax
-                jz skip_carry
+                ; Первая строка закончилась - обменяем указатели
+    first_end:  mov esi, ebx
                 
+                ; Очередной символ
+    @@:         lodsb
+    
+                ; Если он ненулевой, то продолжаем
+    second_end: test eax, eax
+                jz finale
+                
+                ; Добавляем к первому символу перенос
+                ; Складываем символы и вычитаем две базы "0"
+                ; Корректируем и возвращаем базу для вывода
+                add eax, edx
+                sub eax, '0'
+                aaa
                 add eax, '0'
+                
+                ; Записываем
                 stosb
                 
-    skip_carry: xor eax, eax
+                ; Затираем символ, перенос теперь в AL
+                shr eax, 8
+                mov edx, eax
+                
+                ; Повторяем
+                jmp @B
+
+                ; Проверяем, не осталось ли переноса
+    finale:     test edx, edx
+                jz @F
+                
+                ; Если остался, то добавляем еще единицу
+                mov eax, '1'
                 stosb
                 
+                ; Записываем нулевой символ
+    @@:         xor eax, eax
+                stosb
+                
+                ; Возвращаем указатель на начало массив-приемника
                 mov eax, $dst
-                
                 jmp exit
                 
-	err:
     null:       xor eax, eax
     
     exit:       ret
                 
 bcd_add endp
-
-; bcd_add proc \
-;     $dst : PTR BYTE, \
-;     $lhs : PTR BYTE, \
-;     $rhs : PTR BYTE
-; 
-;                 mov edi, $lhs
-;                 mov ebx, $rhs
-; 
-;                 xor eax, eax
-;                 xor ecx, ecx
-;                 dec ecx
-;                 
-;                 cld
-;                 repnz scasb ; AL <=> [EDI++]
-;                 dec edi
-;                 mov edx, ecx
-;                 neg edx
-;                 sub edx, 2
-; 
-;                 xchg edi, ebx
-;                 xor ecx, ecx
-;                 dec ecx
-; 
-;                 cld
-;                 repnz scasb
-;                 dec edi
-;                 std
-;                 mov eax, ecx
-;                 neg eax
-;                 sub eax, 2
-; 
-;                 mov esi, edi
-; 
-;                 cmp eax, edx
-;                 cmovae edi, eax
-;                 cmovb edi, edx
-;                 cmova eax, edx
-;                 mov ecx, eax
-; 
-;                 jecxz exit
-; 
-;                 mov eax, $dst
-;                 lea edi, [eax + edi + 1]
-;                 mov byte ptr [eax], '0'
-; 
-;                 xor eax, eax
-;                 stosb
-; 
-;                 xor edx, edx
-;                 dec esi
-;                 dec ebx
-;                 clc
-; 
-;                 ;esi - one
-;                 ;ebx - another one
-;                 ;edi - result
-;                 ;ecx - loop counter
-; 
-;     @@:         lodsb ; AL <- [ESI--]
-;                 add dl, [ebx]
-; 
-;                 add al, dl
-;                 aaa
-;                 add al, '0'
-;                 stosb ; [EDI--] <- AL
-; 
-;                 shr ax, 8
-;                 mov dl, al
-;                 
-;                 dec ebx
-;                 loop @B
-; 
-;                 test dl, dl
-;                 jz exit
-; 
-;                 lea eax, [edx + '0']
-;                 stosb
-; 
-;     exit:       mov eax, $dst
-;                 cld
-;                 ret
-; 
-;     empty:      mov eax, edi
-;                 ret
-;     
-; bcd_add endp
 
 end

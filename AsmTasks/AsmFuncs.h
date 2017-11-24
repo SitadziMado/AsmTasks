@@ -97,6 +97,14 @@ namespace asm_funcs
             size_t scale_factor
         );
 
+        extern bool first_last_of(
+            long item,
+            const long* array,
+            size_t size,
+            size_t* first,
+            size_t* last
+        );
+
         extern const char* strstr(
             const char* string,
             const char* substring

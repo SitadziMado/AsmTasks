@@ -4,275 +4,159 @@
 .data
 .code
 
-extern bcd_cmp : near
+extern bcd_cmp : NEAR
 public bcd_sub
 
 bcd_sub proc \
     $dst : PTR BYTE, \
     $lhs : PTR BYTE, \
     $rhs : PTR BYTE
-
-                mov esi, $lhs
-                mov ebx, $rhs
-                ; mov edi, $dst
     
+local $sgn : DWORD
+
+                ; Загружаем первое число, проверяем на нуль
+                mov esi, $lhs
                 test esi, esi
                 jz null
+                
+                ; Загружаем второе число, проверяем на нуль
+                mov ebx, $rhs
                 test ebx, ebx
                 jz null
+                
+                push esi
+                push ebx
+                
+                ; Сравниваем числа для того, чтобы в дальшнейшем
+                ; можно было их поменять местами
+                push $rhs
+                push $lhs
+                call bcd_cmp
+
+				add esp, 8
+                
+                pop ebx
+                pop esi
+
+                ; Загружаем массив-приемник, проверяем на нуль
+                mov edi, $dst
                 test edi, edi
                 jz null
-    
-                push ebx
-                push esi
-                call bcd_cmp
-                add esp, 8
                 
-                mov esi, $lhs
-                mov ebx, $rhs
-                mov edi, $dst
-
-				cld
+                ; Изначально знака нет
+                mov $sgn, 0
+                
+                ; Результат сравнения чисел:
+                ; 0 - равны, возвращаем нуль
+                ; 1 - первое число больше
+                ; -1 - первое число меньше, меняем числа местами
+                cmp eax, 0
+                jz zero
+                jg @F
+                
+                ; Если число меньше, то перед результатом
+                ; будет минус
+                mov $sgn, 1
+                xchg esi, ebx
+                
+                ; Движемся в прямом направлении
+    @@:         cld
+                xor ecx, ecx
                 xor edx, edx
                 
-                cmp eax, 0
-                jg greater
-                jl less
+                ; Загружаем очередной символ
+    sum:        xor eax, eax
+				lodsb
+    
+                ; Если он ненулевой, то продолжаем
+                test eax, eax
+                jz finale
                 
-                mov eax, '0'
+                ; Загружаем символ из другого числа
+                mov cl, [ebx]
+                inc ebx
+                
+                ; Если символ второй строки ненулевой,
+                ; то продолжаем
+                jecxz second_end
+                
+                ; Вычитаем из первого символа займ
+                ; Вычитаем символы
+                ; Корректируем и возвращаем базу для вывода
+                ; sub eax, edx
+				add ecx, edx
+                sub eax, ecx
+                aas
+                add eax, '0'
+                
+                ; Выводим
+                stosb
+                
+                ; Проверяем, есть ли у числа минус,
+                ; Если есть, то устанавливаем регистр займа
+                test eax, eax
+                sets dl
+                ; mov edx, eax
+                
+                ; Продолжаем
+                jmp sum
+                
+                ; Загружаем очередной символ
+    @@:         xor eax, eax
+                lodsb
+    
+                ; Если он ненулевой, то продолжаем
+    second_end: test eax, eax
+                jz finale
+                
+                ; Вычитаем из первого символа займ
+                ; Вычитаем символы
+                ; Корректируем и возвращаем базу для вывода
+                add edx, '0'
+				sub eax, edx
+                ; sub eax, '0'
+                aas
+                add eax, '0'
+                
+                ; Выводим
+                stosb
+                
+                ; Проверяем, есть ли у числа минус,
+                ; Если есть, то устанавливаем регистр займа
+                test eax, eax
+                sets dl
+                ; mov edx, eax
+                
+                ; Продолжаем
+                jmp @B
+
+                ; Смотрим на знак
+    finale:     cmp $sgn, 0
+                jz @F
+                
+                ; Выводим минус, если надо
+                mov eax, '-'
+                stosb
+                
+                ; Выводим нулевой символ
+    @@:         xor eax, eax
+                stosb
+                
+                ; Возвращаем указатель на начало массив-приемника
+                mov eax, $dst
+                jmp exit
+                
+                ; Просто записываем нуль
+    zero:       mov eax, '0'
                 stosb
                 xor eax, eax
                 stosb
-                lea eax, [edi - 2]
-                
                 jmp exit
                 
-                ; Первое число больше второго, все в порядке
-    greater:    xor eax, eax
-                xor ecx, ecx
-                jmp @F
-    
-    less:       xor eax, eax
-                xor ecx, ecx
-                mov edx, '-'
-                jmp @F
-                
-    @@:         lodsb
-                
-                test eax, eax
-                jz finale
-                cmp eax, '0'
-                jb err
-                cmp eax, '9'
-                ja err
-    
-                test ecx, ecx
-                mov cl, [ebx]
-                sbb al, cl
-                setc cl
-                das
-                
-                add eax, '0'
-                stosb
-                
-                inc ebx
-                
-                jmp @B
-                
-    finale:     test cl, cl
-                jz @F
-                mov eax, '9'
-                stosb
-                
-    @@:         test edx, edx
-                jz @F
-                
-                mov eax, edx
-                stosb
-                
-    @@:         xor eax, eax
-                stosb
-                jmp exit
-                
-    err:        
     null:       xor eax, eax
     
     exit:       ret
-    
+                
 bcd_sub endp
-
-; bcd_sub proc \
-;     $dst : PTR BYTE, \
-;     $lhs : PTR BYTE, \
-;     $rhs : PTR BYTE
-; 
-;                 mov esi, $lhs
-;                 mov edi, $rhs
-; 
-;                 cmp byte ptr [esi], 0
-;                 jz null_1
-;                 cmp byte ptr [edi], 0
-;                 jz null_2
-; 
-;                 ; Skip trailing zeroes
-;                 mov eax, '0'
-; 
-;                 mov ecx, -1
-;                 repz scasb
-;                 xchg esi, edi
-;                 mov ecx, -1
-;                 repz scasb
-;                 xchg esi, edi
-; 
-;                 dec esi
-;                 dec edi
-;                 
-;                 xor eax, eax
-;                 xor ebx, ebx
-;                 xor ecx, ecx
-;                 xor edx, edx
-; 
-;                 cld
-; 
-;     cmp_loop:   cmpsb
-;                 jnz diff
-; 
-;     continue:   inc ecx
-;                 inc edx
-; 
-;                 cmp byte ptr [esi], 0
-;                 jz end_1
-; 
-;                 cmp byte ptr [edi], 0
-;                 jz end_2
-; 
-;                 jmp cmp_loop
-; 
-;     diff:       seta al
-;                 setb ah
-;                 test ebx, ebx
-;                 jnz continue
-; 
-;                 mov ebx, eax
-;                 jmp continue
-; 
-;     end_1:      cmp byte ptr [edi], 0
-;                 jz eq_len
-; 
-;                 xor eax, eax
-;                 xchg ecx, edx
-;                 neg ecx
-; 
-;                 repnz scasb
-;                 inc ecx
-;                 dec edi ; Needed?
-; 
-;                 neg ecx
-;                 xchg ecx, edx
-;                 jmp @F
-; 
-;     end_2:      cmp byte ptr [esi], 0
-;                 jz eq_len
-; 
-;                 xor eax, eax
-;                 xchg esi, edi
-;                 neg ecx
-; 
-;                 repnz scasb
-;                 inc ecx
-;                 dec edi ; Needed?
-; 
-;                 neg ecx
-;                 xchg esi, edi
-; 
-;     @@:         xor eax, eax
-;                 cmp ecx, edx
-;                 ja @F
-; 
-;                 xchg esi, edi
-;                 xchg ecx, edx
-;                 inc eax
-; 
-;                 jmp @F
-; 
-;     eq_len:     xor eax, eax
-;                 test bl, bl     ; 1 > 2?
-;                 jnz @F
-; 
-;                 xchg esi, edi
-;                 inc eax
-; 
-;     @@:         ;dec ecx
-;                 ;dec edx
-;                 ;dec esi
-;                 ;dec edi
-; 				sub esi, 2
-; 				sub edi, 2
-; 
-;                 xchg ecx, edx
-;                 
-;                 ; Отмотать
-;                 ; cmpsb
-; 
-;                 mov ebx, edi
-;                 mov edi, $dst
-; 
-;                 test eax, eax
-;                 jz put_0
-; 
-;                 mov eax, '-'
-;                 stosb
-; 
-; 	put_0:  	mov eax, '0'
-; 				stosb
-; 
-;                 std
-;                 lea edi, [edx + edi - 1] ; Смотреть
-; 				xor eax, eax
-; 				stosb
-; 
-;                 xor edx, edx
-; 
-;     sub_loop:   xor eax, eax
-;                 lodsb
-;                 add al, dl
-;                 mov dl, [ebx]
-; 
-;                 sub al, dl
-;                 aas
-;                 add al, '0'
-;                 stosb
-; 
-;                 shr ax, 8
-;                 mov dl, al
-;                 
-;                 dec ebx
-;                 loop sub_loop
-; 
-;                 lodsb
-;                 add dl, al
-;                 lea eax, [edx]
-;                 stosb
-; 
-;                 mov eax, $dst
-;                 jmp exit
-; 
-;     null_1:     mov edi, $dst
-;                 jmp fill_exit
-; 
-;     null_2:     mov esi, edi
-;                 mov edi, $dst
-;                 mov eax, '-'
-;                 stosb
-; 
-;     fill_exit:  lodsb
-;                 stosb
-;                 test eax, eax
-;                 jnz fill_exit
-; 
-;     exit:       cld
-;                 ret
-;     
-; bcd_sub endp
 
 end

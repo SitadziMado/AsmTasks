@@ -4,108 +4,82 @@
 .code
 
 public bcd_cmp
-; public bcd_sub
 
 bcd_cmp proc \
     $first : PTR BYTE, \
     $second : PTR BYTE
-    
-                mov esi, $first
+                
+                ; Ищем нулевой символ
+                xor eax, eax
+                
+                ; Загружаем первую строку
+                mov edi, $first
+                
+                ; Ищем нулевой символ до конца строки
+                mov ecx, -1
+                repnz scasb
+                
+                ; Отступаем обратно на два символа,
+                ; так как строковые функции сначала делают
+                ; инкремент, а потом сравнивают
+                add ecx, 2
+                neg ecx
+                
+                ; Сохраняем длину и указатель на конец первой строки
+                mov edx, ecx
+                mov esi, edi
+                
+                ; Делаем то же самое со второй строкой
                 mov edi, $second
                 
-                cld
+                mov ecx, -1
+                repnz scasb
                 
-    cmp_loop:   cmpsb
-                jnz failure
+                add ecx, 2
+                neg ecx
                 
-                cmp byte ptr [esi - 1], 0
-                jz exit
+                ; Сравниваем по длине:
+                ; 1 > 2: +1 
+                ; 1 < 2: -1
+                cmp edx, ecx
+                ja greater
+                jb less
                 
-                cmp byte ptr [edi - 1], 0
-                jz failure
+                ; Иначе идем дальше
+                sub esi, 2
+                sub edi, 2
                 
-                jmp cmp_loop
+                ; Двигаемся с конца
+                std
                 
-    first_end:  cmp byte ptr [edi - 1], 0
-                jnz failure
+                ; Сравниваем, пока символы равны
+                repz cmpsb
+                jnz not_eq
                 
-                mov eax, 0
+                ; Все символы оказались равными - успех
+                xor eax, eax
                 jmp exit
                 
-    failure:    xor eax, eax
-                dec esi
-                dec edi
+                ; Отступаем на символ
+    not_eq:     inc esi
+                inc edi
+                
+                ; Загружаем символ и тут же сравниваем
                 lodsb
-                sub al, [edi]
+                scasb
                 
-                cmp eax, 0
-                jl less
+                ; Смотрим на признак: меньше или больше
+                jb less
+                ; ja greater
                 
-                mov eax, 1
+    greater:    mov eax, 1
                 jmp exit
-                
+    
     less:       mov eax, -1
     
-    exit:       ret
+    exit:       cld
+				ret
                 
 bcd_cmp endp
-
-; bcd_cmp proc \
-;     $first : PTR BYTE, \
-;     $second : PTR BYTE
-;     
-;                 mov esi, $first
-;                 mov edi, $second
-;                 
-;                 xchg esi, edi
-; 
-;                 xor eax, eax
-;                 mov ecx, -1
-;                 mov edx, -1
-;                 
-;                 repnz scasb
-;                 
-;                 neg ecx
-;                 ; dec ecx
-;                 
-;                 xchg ecx, edx
-;                 xchg esi, edi
-; 
-;                 repnz scasb
-;                 
-;                 neg ecx
-;                 ; dec ecx
-;                 
-;                 cmp ecx, edx
-;                 jb above
-;                 ja below
-;                 
-;                 std
-;                 
-;                 repz cmpsb
-;                 jnz diff
-;                 jecxz equals
-;                 
-;     diff:       inc esi
-;                 inc edi
-;                 
-;                 lodsb
-;                 sub al, [edi]
-;                 jb below
-;                 ja above
-;                 
-;     equals:     xor eax, eax
-;                 jmp exit
-;                 
-;     above:      mov eax, 1
-;                 jmp exit
-;                 
-;     below:      mov eax, -1
-;                 
-;                 xchg esi, edi
-;                 
-;     exit:       ret
-;                 
-; bcd_cmp endp
 
 end

@@ -1,26 +1,10 @@
-.586
 .model flat, C
 .stack
 .data
 
-$table db   '0', '1', '2', '3', \
-            '4', '5', '6', '7', \
-            '8', '9', 'A', 'B', \
-            'C', 'D', 'E', 'F'
+DIGITS_PER_DWORD EQU 8
 
-$inv_table db   'F', 'E', 'D', 'C', \
-                'B', 'A', '9', '8'
-$inv_oct db     '7', '6', '5', '4', \
-                '3', '2', '1', '0'
-
-MAX EQU 07FFFFFFFh
-MIN EQU 080000000h
-EIGHT_DIGIT EQU 99999999
-BASE EQU 10
-LO4_MASK EQU 0Fh
-HI4_MASK EQU 0F0000000h
-HI3_MASK EQU 0E0000000h
-SUPREME EQU 31
+$suffix db '*', 'b', '*', 'o', 'h'
 
 .code
 
@@ -30,164 +14,221 @@ itoa proc \
     $dst : PTR BYTE, \
     $number : DWORD, \
     $base : DWORD
-    
-                cld
+
                 mov ebx, $base
-                cmp ebx, 10
-                jz base10
-
+                
+                ; Проверяем на поддерживаемые СС
                 cmp ebx, 2
-                jz base2
+                jz bin
                 cmp ebx, 8
-                jz base8
+                jz bin
                 cmp ebx, 16
-                jz base16
-
-                jmp err_base
-
-    base2:      mov ebx, put2
-                jmp base_bin
-
-    base8:      mov ebx, prepare8
-                jmp base_bin
-
-    base16:     mov ebx, prepare16
-
-    base_bin:   xor eax, eax
-                mov ecx, $number
-                mov edi, $dst
-
-                jecxz only_zero
-
-                mov eax, ecx
-                bsr ecx, eax
-                mov edx, ecx
-                sub ecx, SUPREME
-                neg ecx
-                shl eax, cl
-
-                mov ecx, edx
-                inc ecx
-                mov edx, eax
-                xor eax, eax
-
-                jmp ebx
-    
-    only_zero:  mov eax, '0'
-                stosb
-
-                jmp ebx
-
-    put2:       shl edx, 1
-                setc al
-                add eax, '0'
-                stosb
-
-                loop put2
-
-                mov eax, 'b'
-                stosb
-
-                jmp exit
-
-    prepare8:   mov ebx, offset $inv_oct
-
-    put8:       mov eax, HI3_MASK
-                and eax, edx
-                shr eax, 29
-                xlat
-                shl edx, 3
-
-                stosb
-
-                sub ecx, 3
-                ja put8
-
-                mov eax, 'o'
-                stosb
-
-                jmp exit
-
-    prepare16:  mov ebx, offset $inv_table
-
-    put16:      mov eax, HI4_MASK
-                and eax, edx
-                shr eax, 28
-                xlat
-                shl edx, 4
-
-                stosb
-
-                sub ecx, 4
-                ja put8
-
-                jmp exit
-
-    base10:     mov eax, $number
-
-                xor ecx, ecx
+                jz bin
+                cmp ebx, 10
+                jnz err_base
+                
+                ; Загружаем число в EAX
+                mov eax, $number
+                
+                ; Делаем EAX положительным без прыжков
+                mov ebx, eax
+                neg ebx
+                test eax, eax
+                cmovs eax, ebx
+                
+                ; Загружаем основание СС: 10
+                ; ESI и EDI будут хранить упакованные
+                ; двоично-десятичные цифры
+                mov ebx, 10
                 xor esi, esi
                 xor edi, edi
-
-                cmp eax, 0
-                jge cut_to8
-
-                neg eax
-                inc edi
-
-    cut_to8:    cmp eax, EIGHT_DIGIT
-                jb @F
-
-                shl ecx, 4
+                
+                ; Количество двоично-десятичных цифр в двойном слове
+    @@:         mov ecx, DIGITS_PER_DWORD
+                
+                ; Если число - ноль, то завершаем
+    digits:     test eax, eax
+                jz @F
+                
+                ; Делим на 10
                 xor edx, edx
                 div ebx
-                add ecx, edx
-
-                jmp cut_to8
-
-    @@:         shl esi, 4
-                xor edx, edx
-                div ebx
-                add esi, edx
-
+                
+                ; Сдвигаем ESI на 4, добавляем очередную
+                ; двоично-десятичную цифру
+                shl esi, 4
+                or esi, edx
+                
+                ; Продолжаем до восьми раз - 
+                ; вместимости двойного слова
+                loop digits
+                
+                ; Если число нулевое - то EDI не потребуется
                 test eax, eax
-                jnz @B
-
-                mov eax, edi
+                jz @F
+                
+                ; Перемещаем ESI в EDI - очищаем ESI
+                ; Продолжаем сохранять двоично-десятичные цифры
+                mov edi, esi
+                xor esi, esi
+                jmp @B
+                
+                ; Загружаем число, резервируем высшее слово
+                ; полученного двоично-десятичного числа в EBX
+                ; Загружаем указатель на строку назначения
+    @@:         mov eax, $number
+                mov ebx, edi
                 mov edi, $dst
-                mov ebx, swap_ac
-
+                cld
+                
+                ; Проверяем число на знак
                 test eax, eax
-                jz print_ecx
-
-				mov eax, '-'
+                jns no_sgn
+                
+                ; Записываем минус в случае его присутствия
+                mov eax, '-'
                 stosb
                 
-    print_ecx:  jecxz finish
-                mov eax, LO4_MASK
-                and eax, ecx
-                shr ecx, 4
+                ; Вычисляем количество двоично-десятичных 
+                ; цифр в ESI - если их 0, записываем "0"
+                ; выходим
+    no_sgn:     add ecx, -8
+                neg ecx
+                jecxz zero
+                
+                ; Записываем очередной символ:
+                ; берем нижнюю двоично-десятичную цифру
+                ; операцией поразрядного "И" от числа и
+                ; 1111b - так в EAX оказываются нижние 4 бита
+                ; Добавляем '0' - получаем символ, готовый к записи
+    write:      mov eax, esi
+                and eax, 0Fh
                 add eax, '0'
+                shr esi, 4
+                
+                ; Записываем его
                 stosb
-
-                jmp print_ecx
-
-    finish:     jmp ebx
-
-    swap_ac:    mov ecx, esi
-                mov ebx, exit
-                jmp print_ecx
-
-    err_base:   xor eax, eax
-                ret
-
-    exit:       xor eax, eax
+                
+                ; Продолжаем столько раз, сколько цифр в ESI
+                loop write
+                
+                ; Если ESI был перенесен в EDI, то там 8 символов
+                ; Если EDI пуст, то заканчиваем работу
+                mov ecx, DIGITS_PER_DWORD
+                xchg esi, ebx
+                test esi, esi
+                jnz write
+                
+                ; Пишем нулевой символ
+                xor eax, eax
                 stosb
+                
+                ; Возвращаем указатель на начало строки
                 mov eax, $dst
-
-                ret
-
+                
+				jmp exit
+                
+                ; Записываем в ECX количество битов для сдвига (1, 3, 4)
+                ; В EBX будет маска нижних битов для последующего
+                ; превращения в символ
+    bin:        bsf ecx, ebx
+                dec ebx
+                
+                mov esi, $number
+                mov edi, $dst
+                
+                ; Находим индекс старшего бита в числе
+                xor edx, edx
+                bsr eax, esi
+                jz bzero
+                
+                ; Делим индекс старшего бита на биты/цифра
+                ; Округляем в большую сторону нехитрыми манипуляциями
+                ; Это нужно для расчета нужного места для числа
+				inc eax
+                div ecx
+                test edx, edx
+                setnz dl
+                add eax, edx
+                
+                ; Прибавляем количество символов к началу строки,
+                ; единица для суффикса
+                lea edi, [edi + eax + 1]
+                
+                ; Маска теперь в EDX
+                mov edx, ebx
+                
+                ; Пишем нулевой символ и суффикс в конец числа
+                std
+                xor eax, eax
+                stosb
+                mov eax, ecx
+                lea ebx, [$suffix]
+                xlat
+                
+                stosb
+                
+                ; Считываем следующую цифру
+                ; двоичного/восьмеричного/шестнадцатеричного числа
+    bdigits:    mov ebx, esi
+                and ebx, edx
+                shr esi, cl
+                
+                ; Превращаем цифру в символ
+                lea eax, [ebx + '0']
+                cmp eax, '9'
+                jbe @F
+                
+                ; Если это шестнадцатеричная цифра, то нехитрыми
+                ; манипуляциями превращаем ее в букву
+                add eax, 'A' - '0' - 10
+                
+                ; Записываем...
+    @@:         stosb
+    
+                ; Если еще не ноль, то продолжаем
+                test esi, esi
+                jnz bdigits
+                
+                ; (обязательно) очищаем флаг направления
+                cld
+                mov eax, $dst
+                jmp exit
+                
+                ; Пишем "0" и выходим
+    zero:       mov eax, '0'
+                stosb
+                
+                ; ...нулевой символ
+                xor eax, eax
+                stosb
+                
+                mov eax, $dst
+                
+                jmp exit
+                
+                ; Пишем "0" и выходим
+    bzero:      mov eax, '0'
+                stosb
+                
+                ; Записываем суффикс
+                mov eax, ecx
+                lea ebx, [$suffix]
+                xlat
+                stosb
+                
+                ; ...нулевой символ
+                xor eax, eax
+                stosb
+                
+                mov eax, $dst
+                
+                jmp exit
+                
+    err_base:   xor eax, eax
+    
+    exit:       ret
+    
 itoa endp
-
 
 end
