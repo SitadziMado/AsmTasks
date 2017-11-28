@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Исходные файлы\Assembly">
+      <UniqueIdentifier>{d47d7ce0-db94-4a90-b858-87bc2edf3af2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -40,50 +43,53 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="SaddleElement.asm">
-      <Filter>Исходные файлы</Filter>
+    <MASM Include="Atof.asm">
+      <Filter>Исходные файлы\Assembly</Filter>
     </MASM>
     <MASM Include="Atoi.asm">
-      <Filter>Исходные файлы</Filter>
-    </MASM>
-    <MASM Include="Itoa.asm">
-      <Filter>Исходные файлы</Filter>
-    </MASM>
-    <MASM Include="Memset.asm">
-      <Filter>Исходные файлы</Filter>
-    </MASM>
-    <MASM Include="MulBy2n.asm">
-      <Filter>Исходные файлы</Filter>
-    </MASM>
-    <MASM Include="DivBy2n.asm">
-      <Filter>Исходные файлы</Filter>
-    </MASM>
-    <MASM Include="Crypt.asm">
-      <Filter>Исходные файлы</Filter>
-    </MASM>
-    <MASM Include="ScaleCopy.asm">
-      <Filter>Исходные файлы</Filter>
-    </MASM>
-    <MASM Include="StrStr.asm">
-      <Filter>Исходные файлы</Filter>
-    </MASM>
-    <MASM Include="WStrCmp.asm">
-      <Filter>Исходные файлы</Filter>
+      <Filter>Исходные файлы\Assembly</Filter>
     </MASM>
     <MASM Include="BcdAdd.asm">
-      <Filter>Исходные файлы</Filter>
-    </MASM>
-    <MASM Include="BcdSub.asm">
-      <Filter>Исходные файлы</Filter>
+      <Filter>Исходные файлы\Assembly</Filter>
     </MASM>
     <MASM Include="BcdCmp.asm">
-      <Filter>Исходные файлы</Filter>
+      <Filter>Исходные файлы\Assembly</Filter>
+    </MASM>
+    <MASM Include="BcdSub.asm">
+      <Filter>Исходные файлы\Assembly</Filter>
+    </MASM>
+    <MASM Include="Crypt.asm">
+      <Filter>Исходные файлы\Assembly</Filter>
+    </MASM>
+    <MASM Include="DivBy2n.asm">
+      <Filter>Исходные файлы\Assembly</Filter>
+    </MASM>
+    <MASM Include="FirstLastOf.asm">
+      <Filter>Исходные файлы\Assembly</Filter>
+    </MASM>
+    <MASM Include="Itoa.asm">
+      <Filter>Исходные файлы\Assembly</Filter>
+    </MASM>
+    <MASM Include="Memset.asm">
+      <Filter>Исходные файлы\Assembly</Filter>
+    </MASM>
+    <MASM Include="MulBy2n.asm">
+      <Filter>Исходные файлы\Assembly</Filter>
+    </MASM>
+    <MASM Include="SaddleElement.asm">
+      <Filter>Исходные файлы\Assembly</Filter>
+    </MASM>
+    <MASM Include="ScaleCopy.asm">
+      <Filter>Исходные файлы\Assembly</Filter>
+    </MASM>
+    <MASM Include="StrStr.asm">
+      <Filter>Исходные файлы\Assembly</Filter>
     </MASM>
     <MASM Include="Union.asm">
-      <Filter>Исходные файлы</Filter>
+      <Filter>Исходные файлы\Assembly</Filter>
     </MASM>
-    <MASM Include="Atof.asm">
-      <Filter>Исходные файлы</Filter>
+    <MASM Include="WStrCmp.asm">
+      <Filter>Исходные файлы\Assembly</Filter>
     </MASM>
   </ItemGroup>
 </Project>

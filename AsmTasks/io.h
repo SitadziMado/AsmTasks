@@ -6,9 +6,44 @@
 #include <utility>
 #include <vector>
 
+template<typename TTrue, typename TFalse, bool Value> struct SwitchImpl;
+
+template<typename TTrue, typename TFalse>
+struct SwitchImpl<TTrue, TFalse, false>
+{
+    using Type = TFalse;
+};
+
+template<typename TTrue, typename TFalse>
+struct SwitchImpl<TTrue, TFalse, true>
+{
+    using Type = TTrue;
+};
+
+template<typename T>
+using NumericOrDefault_t = typename SwitchImpl<T, int, std::is_arithmetic<T>::value>::Type;
+
+template<typename T, typename = std::enable_if<std::is_arithmetic<T>::value>>
+bool check(
+    T value,
+    T lowerConstraint,
+    T higherConstraint
+)
+{
+    return lowerConstraint <= value && value <= higherConstraint;
+}
+
+template<typename T>
+typename std::enable_if<!(std::is_arithmetic<T>::value), bool>::type check(T, NumericOrDefault_t<T>, NumericOrDefault_t<T>)
+{
+    return true;
+}
+
 template<typename T = std::string>
 T input(
-    const std::string& prompt = "", 
+    const std::string& prompt = "",
+    NumericOrDefault_t<T> lowerConstraint = std::numeric_limits<NumericOrDefault_t<T>>::min(),
+    NumericOrDefault_t<T> higherConstraint = std::numeric_limits<NumericOrDefault_t<T>>::max(),
     const std::string& failed = "Error occured while parsing. Try again...."
 )
 {
@@ -17,7 +52,7 @@ T input(
 
     T result;
 
-    while (!(std::cin >> result))
+    while (!(std::cin >> result) || !check(result, lowerConstraint, higherConstraint))
     {
         std::cout << failed << std::endl;
 
@@ -26,6 +61,18 @@ T input(
     }
 
     std::cin.ignore(std::numeric_limits<size_t>::max(), '\n');
+
+    return result;
+}
+
+std::string input(const std::string& prompt)
+{
+    if (prompt.size())
+        std::cout << prompt << " ";
+
+    std::string result;
+
+    std::getline(std::cin, result);
 
     return result;
 }

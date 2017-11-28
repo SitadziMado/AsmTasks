@@ -32,6 +32,8 @@ namespace asm_funcs
     const ShortSet& operator-(const ShortSet& lhs, const ShortSet& rhs);
     const ShortSet& operator*(const ShortSet& lhs, const ShortSet& rhs);
 
+    std::ostream& operator<<(std::ostream& stream, const ShortSet& set);
+
     extern "C"
     {
         // #1
@@ -90,16 +92,16 @@ namespace asm_funcs
             size_t size
         );
 
-        extern const long* scale_copy(
-            long* dst,
-            const long* src,
+        extern const int* scale_copy(
+            int* dst,
+            const int* src,
             size_t size,
             size_t scale_factor
         );
 
         extern bool first_last_of(
-            long item,
-            const long* array,
+            int item,
+            const int* array,
             size_t size,
             size_t* first,
             size_t* last

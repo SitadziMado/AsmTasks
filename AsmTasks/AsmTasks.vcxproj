@@ -169,6 +169,7 @@
     <MASM Include="BcdSub.asm" />
     <MASM Include="Crypt.asm" />
     <MASM Include="DivBy2n.asm" />
+    <MASM Include="FirstLastOf.asm" />
     <MASM Include="Itoa.asm" />
     <MASM Include="Memset.asm" />
     <MASM Include="MulBy2n.asm" />

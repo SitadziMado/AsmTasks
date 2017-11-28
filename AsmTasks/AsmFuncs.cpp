@@ -106,4 +106,19 @@ namespace asm_funcs
     {
         return ShortSet(lhs) *= rhs;
     }
+
+    std::ostream& operator<<(std::ostream& stream, const ShortSet& set)
+    {
+        stream << "{ ";
+
+        for (int i = 0; i < set.Size; i++)
+        {
+            if (set.find((short)(i + std::numeric_limits<short>::min())))
+                stream << (i + std::numeric_limits<short>::min()) << "; ";
+        }
+
+        stream << "}";
+
+        return stream;
+    }
 }

@@ -32,7 +32,7 @@ wstrcmp proc \
 
                 ; Если обе строки закончились на нулевые,
                 ; то они равны
-                cmp word ptr [esi], 0
+                cmp word ptr [esi - 2], 0
                 jz equals
 
                 ; Продолжаем
@@ -62,6 +62,8 @@ wstrcmp proc \
 
                 jmp exit
 
+    
+                
                 ; Если строки равны, то индекс <- (-1)
     equals:     xor eax, eax
                 mov edx, -1
